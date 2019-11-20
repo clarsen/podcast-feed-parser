@@ -168,7 +168,9 @@ const GET = exports.GET = {
     // returns categories as an array containing each category/sub-category
     // grouping in lists. If there is a sub-category, it is the second element
     // of an array.
-
+    if (node['itunes:category'] === undefined) {
+      return undefined
+    }
     const categoriesArray = node["itunes:category"].map( item => {
       let category = []
       category.push(item['$'].text) // primary category
@@ -217,14 +219,29 @@ const CLEAN = exports.CLEAN = {
   },
 
   owner: function (object) {
+    if (object === undefined) {
+      return undefined
+    }
+    let name = undefined
+    if (object[0]["itunes:name"] !== undefined) {
+      name = object[0]["itunes:name"][0]
+    }
+    let email = undefined
+    if (object[0]["itunes:email"] !== undefined) {
+      name = object[0]["itunes:email"][0]
+    }
     return {
-      name: object[0]["itunes:name"][0],
-      email: object[0]["itunes:email"][0]
+      name,
+      email
     }
   },
 
   lastUpdated: function (string) {
-    return new Date(string).toISOString()
+    try {
+      return new Date(string).toISOString()
+    } catch (e) {
+      return undefined
+    }
   },
 
   pubDate: function (string) {
@@ -290,12 +307,13 @@ const getInfo = exports.getInfo = function (node, field, uncleaned) {
   // if not, get default value
   info = (GET[field]) ? GET[field].call(this, node) : getDefault(node,field)
 
+  
   // if field is not marked as uncleaned, clean it using CLEAN functions
   if (!uncleaned && info !== undefined) {
     info = (CLEAN[field]) ? CLEAN[field].call(this, info) : cleanDefault(info)
   } else {
   }
-
+    
   return info
 }
 
@@ -436,7 +454,7 @@ const getPodcastFromURL = exports.getPodcastFromURL = async function (url, param
     const feedResponse = await fetchFeed(url)
     const channel = feedResponse.rss.channel[0]
 
-    if (channel["itunes:new-feed-url"]) {
+    if (channel["itunes:new-feed-url"] && channel["itunes:new-feed-url"][0] != url) {
       return await getPodcastFromURL(channel["itunes:new-feed-url"][0], params)
     }
 
