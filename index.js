@@ -21,6 +21,7 @@ const DEFAULT = exports.DEFAULT = {
             'explicit', 'complete', 'blocked'],
     episodes: ['title', 'description', 'subtitle', 'imageURL', 'pubDate',
             'link', 'language', 'enclosure', 'duration', 'summary', 'blocked',
+            'content',
             'explicit', 'order']
   },
   required: {
@@ -52,6 +53,7 @@ const buildOptions = exports.buildOptions = function (params) {
                 'explicit', 'complete', 'blocked'],
         episodes: ['title', 'description', 'subtitle', 'imageURL', 'pubDate',
                 'link', 'language', 'enclosure', 'duration', 'summary', 'blocked',
+                'content',
                 'explicit', 'order']
       },
       required: {
@@ -163,7 +165,9 @@ const GET = exports.GET = {
   duration: function (node) {
     return node['itunes:duration']
   },
-
+  content: function (node) {
+    return node['content:encoded']
+  },
   categories: function (node) {
     // returns categories as an array containing each category/sub-category
     // grouping in lists. If there is a sub-category, it is the second element
