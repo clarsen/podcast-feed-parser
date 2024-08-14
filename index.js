@@ -107,10 +107,16 @@ const buildOptions = exports.buildOptions = function (params) {
 const GET = exports.GET = {
   imageURL: function (node) {
 
+    console.log(`imageURL: node.image: `, JSON.stringify(node.image))
     if (node.image) {
-      return node.image[0].url[0]
+      if (node.image[0].url) {
+        return node.image[0].url[0]
+      } else {
+        return node.image[0]
+      }
     }
 
+    console.log(`imageURL: node["itunes:image"]: `, JSON.stringify(node["itunes:image"]))
     if (node["itunes:image"]) {
       return node["itunes:image"][0]['$'].href
     }
@@ -172,13 +178,22 @@ const GET = exports.GET = {
     // returns categories as an array containing each category/sub-category
     // grouping in lists. If there is a sub-category, it is the second element
     // of an array.
+    console.log(`parse categories: `, JSON.stringify(node['itunes:category']))
     if (node['itunes:category'] === undefined) {
       return undefined
     }
-    const categoriesArray = node["itunes:category"].map( item => {
+    let theArray = node['itunes:category']
+    if (theArray[0]['itunes:category']) {
+      theArray = theArray[0]['itunes:category']
+    }
+    const categoriesArray = theArray.map( item => {
+      console.log(`parse category array item: `, JSON.stringify(item))
+      console.log(`parse category array item[$]: ${item['$']}`)
       let category = []
       category.push(item['$'].text) // primary category
       if (item['itunes:category']) { // sub-category
+        console.log(`subcategory item:`)
+        console.log(`  ${item['itunes:category'][0]['$']}`)
         category.push(item['itunes:category'][0]['$'].text)
       }
       return category
@@ -352,7 +367,9 @@ function createMetaObjectFromFeed (channel, options) {
 // function builds episode objects from parsed podcast feed
 function createEpisodesObjectFromFeed (channel, options) {
   let episodes = []
-
+  if (!channel.item) {
+    return episodes
+  }
   channel.item.forEach( (item) => {
     const episode = {}
 
